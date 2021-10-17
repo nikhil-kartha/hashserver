@@ -18,19 +18,35 @@ $ go run -race hashserver.go
 
 Client:
 
-## POST COMPUTE HASH
+## POST /hash
+COMPUTE HASH
 ```
 $ for i in {1..100}; do curl --data "password=angryMonkey$i" localhost:8080/hash; done
+counter:1
+counter:2
+...
 ```
 
-## GET HASH
+## GET /hash/\<reqid\>
 ```
 $ curl localhost:8080/hash/1
++OKDXmFdy5f2WBlJlxckDJpZPho0vEhMs6h5luF5fCOKqnFTluWQdDU2eMoPfkDNbh+tI7ANiSjFIwFD8wDcbA==
 ```
 
-## GET STATS
+## GET /stats
 ```
 $ while :;do curl localhost:8080/stats; done
 {"totalRequests":207,"avgDuration":"249.111µs"}
 {"totalRequests":208,"avgDuration":"248.575µs"}
 ```
+
+# Concurrent Load
+```
+sh ab.sh
+```
+TODO:
+1. graceful shutdown, https://pkg.go.dev/net/http#Server.Shutdown
+2. use context package, pass the cancellation context through to the goroutines.
+3. use error values, better error handling
+4. better http status codes
+5. unit tests

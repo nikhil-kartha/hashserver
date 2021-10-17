@@ -45,6 +45,7 @@ func processJob(job HashIn){
     m.Store(scount, b64)
     log.Println(job, b64)
 }
+
 func base64OfSha512(password string) string{
     startTime := time.Now()
     sha_512 := sha512.New()
@@ -69,13 +70,13 @@ func computeHashHandler(w http.ResponseWriter, r *http.Request) {
     switch r.Method {
     case "POST":
         password := r.FormValue("password")
-        atomic.AddUint64(&counter, 1)
+        reqNumber := atomic.AddUint64(&counter, 1)
         hashin := HashIn{
-            count: counter,
+            count: reqNumber,
             password: password,
         }
         jobs <- hashin
-        scount := strconv.FormatUint(counter, 10)
+        scount := strconv.FormatUint(reqNumber, 10)
         fmt.Fprintln(w, "counter:"+ scount)
     default:
         fmt.Fprintln(w, "Only POST request supported. Requested method:"+ r.Method)
@@ -86,17 +87,19 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
     var avgDuration time.Duration
     switch r.Method {
     case "GET":
-        if counter == 0{
-            fmt.Fprintln(w, "{\"totalRequests\":" + strconv.FormatUint(counter,10) + ",\"avgDuration\":\"" +  avgDuration.String() + "\"}")
+        localCounter := atomic.LoadUint64(&counter)
+        localTotalDuration := atomic.LoadUint64(&totalDuration)
+        if localCounter == 0{
+            fmt.Fprintln(w, "{\"totalRequests\":0" + ",\"avgDuration\":\"" +  avgDuration.String() + "\"}")
         } else {
-            avgDuration = time.Duration(totalDuration/counter) * time.Nanosecond
+            avgDuration = time.Duration(localTotalDuration/localCounter) * time.Nanosecond
             /*statsout := StatsOut{
-                ReqCount: counter,
-                TotalDuration: duration,
+                ReqCount: localCounter,
+                TotalDuration: avgDuration,
             }
             fmt.Fprintln(w, json.NewEncoder(w).Encode(statsout))
             */
-            fmt.Fprintln(w, "{\"totalRequests\":" + strconv.FormatUint(counter,10) + ",\"avgDuration\":\"" +  avgDuration.String() + "\"}")
+            fmt.Fprintln(w, "{\"totalRequests\":" + strconv.FormatUint(localCounter,10) + ",\"avgDuration\":\"" +  avgDuration.String() + "\"}")
         }
     default:
         fmt.Fprintln(w, "Only GET request supported. Requested method:"+ r.Method)
@@ -111,7 +114,7 @@ func getHashHandler(w http.ResponseWriter, r *http.Request) {
             fmt.Fprintln(w, "Missing request number. Provided path:"+ r.URL.Path)
         }
         requestNumber := p[2]
-        fmt.Println("Get Hash for request:", requestNumber)
+        log.Println("Get Hash for request:", requestNumber)
         value, ok:= m.Load(requestNumber)
         if ok {
             fmt.Fprintln(w, value.(string))
