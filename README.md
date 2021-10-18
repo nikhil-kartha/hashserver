@@ -50,3 +50,4 @@ TODO:
 3. use error values, better error handling
 4. better http status codes
 5. unit tests
+6. log stats, eg: number of goroutines, mem, cpu etc.
