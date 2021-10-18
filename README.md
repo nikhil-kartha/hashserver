@@ -1,7 +1,7 @@
 RUN Server
 
 ```
-$ go run -race hashserver.go
+$ go run -race hashserver.go handlers.go
 2021/10/16 16:16:56 Worker Running
 2021/10/16 16:17:10 Request duration: 285.117µs &{POST /hash HTTP/1.1 1 1 map[Accept:[*/*] Content-Length:[21] Content-Type:[application/x-www-form-urlencoded] User-Agent:[curl/7.64.0]] 0xc000056300 <nil> 21 [] false localhost:8080 map[password:[angryMonkey1]] map[password:[angryMonkey1]] <nil> map[] 127.0.0.1:47796 /hash <nil> <nil> <nil> 0xc000056340}
 2021/10/16 16:17:10 Run job {1 angryMonkey1}
