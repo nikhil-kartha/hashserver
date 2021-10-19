@@ -21,7 +21,7 @@ func computeHashHandler(w http.ResponseWriter, r *http.Request) {
         }
         jobs <- hashin
         scount := strconv.FormatUint(reqNumber, 10)
-        fmt.Fprintln(w, "counter:"+ scount)
+        fmt.Fprintln(w, "requestNumber:"+ scount)
     default:
         w.WriteHeader(http.StatusMethodNotAllowed)
         fmt.Fprintln(w, "Only POST request supported. Requested method:" + r.Method)

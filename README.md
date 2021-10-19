@@ -22,8 +22,8 @@ Client:
 COMPUTE HASH
 ```
 $ for i in {1..100}; do curl --data "password=angryMonkey$i" localhost:8080/hash; done
-counter:1
-counter:2
+requestNumber:1
+requestNumber:2
 ...
 ```
 
