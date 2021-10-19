@@ -23,7 +23,8 @@ func computeHashHandler(w http.ResponseWriter, r *http.Request) {
         scount := strconv.FormatUint(reqNumber, 10)
         fmt.Fprintln(w, "counter:"+ scount)
     default:
-        fmt.Fprintln(w, "Only POST request supported. Requested method:"+ r.Method)
+        w.WriteHeader(http.StatusMethodNotAllowed)
+        fmt.Fprintln(w, "Only POST request supported. Requested method:" + r.Method)
     }
 }
 
@@ -46,27 +47,33 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
             fmt.Fprintln(w, "{\"totalRequests\":" + strconv.FormatUint(localCounter,10) + ",\"avgDuration\":\"" +  avgDuration.String() + "\"}")
         }
     default:
-        fmt.Fprintln(w, "Only GET request supported. Requested method:"+ r.Method)
+        w.WriteHeader(http.StatusMethodNotAllowed)
+        fmt.Fprintln(w, "Only GET request supported. Requested method:" + r.Method)
     }
 }
 
 func getHashHandler(w http.ResponseWriter, r *http.Request) {
     switch r.Method {
     case "GET":
-        p := strings.Split(r.URL.Path, "/")
-        if len(p) != 3 {
-            fmt.Fprintln(w, "Missing request number. Provided path:"+ r.URL.Path)
-        }
-        requestNumber := p[2]
-        log.Println("Get Hash for request:", requestNumber)
-        value, ok:= m.Load(requestNumber)
-        if ok {
-            fmt.Fprintln(w, value.(string))
+        p := strings.Split(r.URL.Path, "/")[1:]
+        if len(p) == 2 && p[1] != "" {
+            requestNumber := p[1]
+            log.Println("Get Hash for request:", requestNumber)
+            value, ok:= m.Load(requestNumber)
+            if ok {
+                fmt.Fprintln(w, value.(string))
+            } else {
+                w.WriteHeader(http.StatusNotFound)
+                fmt.Fprintln(w, "Not Processed Request Number:", requestNumber, ". Check request number or try again later")
+            }
         } else {
-            fmt.Fprintln(w, "MISSING")
+            w.WriteHeader(http.StatusBadRequest)
+            fmt.Fprintln(w, "No request number in path. Provided path:" + r.URL.Path)
+            return
         }
     default:
-        fmt.Fprintln(w, "Only GET request supported. Requested method:"+ r.Method)
+        w.WriteHeader(http.StatusMethodNotAllowed)
+        fmt.Fprintln(w, "Only GET request supported. Requested method:" +  r.Method)
     }
 }
 
